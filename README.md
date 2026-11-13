@@ -4,7 +4,7 @@
 
 TokenMoon 是一个原生 macOS 用量看板。它读取本机已有的客户端日志，把用量整理成可筛选的图表和请求明细。无需运行独立服务；想汇总多台设备时，可以连到自己的 WebDAV。
 
-[版本发布](https://github.com/YosakiKugatsu/TokenMoon-macOS/releases) · [数据源](docs/collectors.zh-CN.md) · [WebDAV 规范](docs/SYNC.md) · [GPL v3](LICENSE)
+[版本发布](https://github.com/YosakiKugatsu/TokenMoon/releases) · [数据源](docs/collectors.zh-CN.md) · [WebDAV 规范](docs/SYNC.md) · [GPL v3](LICENSE)
 
 ## 项目特点
 
@@ -19,8 +19,8 @@ TokenMoon 是一个原生 macOS 用量看板。它读取本机已有的客户端
 需要 **macOS 26 或更新版本**、**Xcode 26 或更新版本**（Swift 6.2+）。v0.0.1 提供源码，构建脚本生成当前 Mac 架构的应用。
 
 ```sh
-git clone https://github.com/YosakiKugatsu/TokenMoon-macOS.git
-cd TokenMoon-macOS
+git clone https://github.com/YosakiKugatsu/TokenMoon.git
+cd TokenMoon
 git checkout v0.0.1
 bash scripts/build-app.sh
 open dist/TokenMoon.app
