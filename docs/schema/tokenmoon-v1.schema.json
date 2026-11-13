@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TokenMoon WebDAV v1 device month",
+  "description": "One UTF-8 JSON document per device and UTC month. Cross-field checks are specified in SYNC.md.",
+  "type": "object",
+  "required": ["schemaVersion", "deviceID", "deviceName", "month", "updatedAt", "requests"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "deviceID": {"$ref": "#/$defs/deviceID"},
+    "deviceName": {"type": "string", "minLength": 1},
+    "month": {"type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"},
+    "updatedAt": {"$ref": "#/$defs/timestamp"},
+    "requests": {"type": "array", "items": {"$ref": "#/$defs/request"}},
+    "quotaObservations": {"type": "array", "items": {"$ref": "#/$defs/quotaObservation"}}
+  },
+  "$defs": {
+    "deviceID": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z$"
+    },
+    "requiredString": {"type": "string", "minLength": 1},
+    "optionalString": {"type": ["string", "null"]},
+    "tokens": {"type": "integer", "minimum": 0, "maximum": 1000000000000},
+    "optionalTokens": {"anyOf": [{"$ref": "#/$defs/tokens"}, {"type": "null"}]},
+    "quotaObservation": {
+      "type": "object",
+      "required": ["agent", "account", "windowID", "windowLabel", "observedAt", "usedPercent"],
+      "properties": {
+        "agent": {"enum": ["codex", "claude-desktop", "claude-code", "antigravity", "cpa"]},
+        "account": {"type": "string", "minLength": 1},
+        "windowID": {"$ref": "#/$defs/requiredString"},
+        "windowLabel": {"$ref": "#/$defs/requiredString"},
+        "observedAt": {"$ref": "#/$defs/timestamp"},
+        "usedPercent": {"type": "number", "minimum": 0, "maximum": 100},
+        "resetsAt": {"anyOf": [{"$ref": "#/$defs/timestamp"}, {"type": "null"}]},
+        "durationSeconds": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "plan": {"$ref": "#/$defs/optionalString"}
+      }
+    },
+    "request": {
+      "type": "object",
+      "required": [
+        "id", "sessionID", "deviceID", "agent", "timestamp", "requestedModel",
+        "status", "inputTokens", "outputTokens", "cacheReadTokens", "cacheWriteTokens"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/requiredString"},
+        "sessionID": {"$ref": "#/$defs/requiredString"},
+        "deviceID": {"$ref": "#/$defs/deviceID"},
+        "agent": {"enum": ["codex", "claude-desktop", "claude-code", "antigravity", "cpa"]},
+        "timestamp": {"$ref": "#/$defs/timestamp"},
+        "requestedModel": {"$ref": "#/$defs/requiredString"},
+        "sentModel": {"$ref": "#/$defs/optionalString"},
+        "provider": {"$ref": "#/$defs/optionalString"},
+        "providerID": {"$ref": "#/$defs/optionalString"},
+        "account": {"$ref": "#/$defs/optionalString"},
+        "loginMethod": {"$ref": "#/$defs/optionalString"},
+        "loginMethodEvidence": {"enum": ["turnTrace", "conflicting", null]},
+        "sessionCreatorAccountID": {"anyOf": [{"$ref": "#/$defs/deviceID"}, {"type": "null"}]},
+        "sessionCreatorAccountEmail": {"$ref": "#/$defs/optionalString"},
+        "cpaKeyID": {"$ref": "#/$defs/optionalString"},
+        "cpaKeyLabel": {"$ref": "#/$defs/optionalString"},
+        "reasoningEffort": {"$ref": "#/$defs/optionalString"},
+        "serviceTier": {"$ref": "#/$defs/optionalString"},
+        "actualServiceTierEvidence": {"enum": ["conflicting", null]},
+        "requestedServiceTier": {"$ref": "#/$defs/optionalString"},
+        "sentServiceTier": {"$ref": "#/$defs/optionalString"},
+        "status": {"$ref": "#/$defs/requiredString"},
+        "httpStatusCode": {"type": ["integer", "null"], "minimum": 100, "maximum": 599},
+        "message": {"type": ["string", "null"], "maxLength": 512},
+        "durationMS": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "ttftMS": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "timingSource": {"$ref": "#/$defs/optionalString"},
+        "estimatedDurationMS": {"type": ["number", "null"], "exclusiveMinimum": 0, "exclusiveMaximum": 7200000},
+        "estimatedTimingSource": {"type": ["string", "null"], "pattern": "\\S"},
+        "inputTokens": {"$ref": "#/$defs/tokens"},
+        "outputTokens": {"$ref": "#/$defs/tokens"},
+        "cacheReadTokens": {"$ref": "#/$defs/tokens"},
+        "cacheWriteTokens": {"$ref": "#/$defs/tokens"},
+        "reasoningTokens": {"$ref": "#/$defs/optionalTokens"},
+        "source": {"$ref": "#/$defs/optionalString"},
+        "channel": {"$ref": "#/$defs/optionalString"},
+        "cacheWrite5mTokens": {"$ref": "#/$defs/optionalTokens"},
+        "cacheWrite1hTokens": {"$ref": "#/$defs/optionalTokens"}
+      },
+      "if": {
+        "required": ["actualServiceTierEvidence"],
+        "properties": {"actualServiceTierEvidence": {"const": "conflicting"}}
+      },
+      "then": {"properties": {"serviceTier": {"type": "null"}}},
+      "allOf": [
+        {
+          "if": {"required": ["loginMethodEvidence"], "properties": {"loginMethodEvidence": {"const": "turnTrace"}}},
+          "then": {"required": ["loginMethod"], "properties": {"loginMethod": {"$ref": "#/$defs/requiredString"}}}
+        },
+        {
+          "if": {"required": ["loginMethodEvidence"], "properties": {"loginMethodEvidence": {"const": "conflicting"}}},
+          "then": {"properties": {"loginMethod": {"type": "null"}}}
+        }
+      ],
+      "oneOf": [
+        {
+          "properties": {
+            "estimatedDurationMS": {"type": "null"},
+            "estimatedTimingSource": {"type": "null"}
+          }
+        },
+        {
+          "required": ["estimatedDurationMS", "estimatedTimingSource"],
+          "properties": {
+            "estimatedDurationMS": {"type": "number"},
+            "estimatedTimingSource": {"type": "string"}
+          }
+        }
+      ]
+    }
+  }
+}

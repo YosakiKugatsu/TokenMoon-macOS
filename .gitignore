@@ -1,0 +1,13 @@
+.build/
+.swiftpm/
+dist/
+.DS_Store
+__pycache__/
+.env
+.env.*
+*.key
+*.p12
+*.pem
+*.sqlite*
+*.db
+*.log
